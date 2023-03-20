@@ -1,10 +1,12 @@
-import { useState,useEffect,  } from "react"
+import { useState,useEffect} from "react"
 import finnHub from '../apis/finnHub';
 import { BsFillCaretDownFill,BsFillCaretUpFill } from "react-icons/bs";
+import { useGlobalContext } from "../context/watchListContext";
+import { useNavigate } from "react-router-dom";
 export const StockList=()=>{
   const [stock,setSock]=useState([])  
- const [watchList, setWatchList]=useState(['GOOGL','MSFT','AMZN']);
-
+  const {watchList, deleteStock}=useGlobalContext()
+  const navigate= useNavigate() 
     useEffect(()=>{
         let isMounted=true 
         const  fetchData= async ()=>{
@@ -39,7 +41,11 @@ export const StockList=()=>{
         fetchData()
 
         return ()=> (isMounted=false)
-    },[])
+    },[watchList])
+
+    const handleStockSelect=((symbol)=>{
+         navigate(`detail/${symbol}`)
+    })
 
     return <div>
         <table className="table hover mt-5">
@@ -58,7 +64,7 @@ export const StockList=()=>{
         <tbody>
             {stock.map((stockData)=>{
                 return(
-                    <tr className="table-row" key={stockData.symbol}>
+                    <tr className="table-row" onClick={()=> handleStockSelect(stockData.symbol)} style={{cursor: "pointer"}}  key={stockData.symbol}>
                         <th scope="row">{stockData.symbol}</th>
                         <td>{stockData.data.c}</td>
                         <td className={stockData.data.d>0?'text-success':'text-danger'} >{stockData.data.d} {stockData.data.d>0?  <BsFillCaretUpFill/>: <BsFillCaretDownFill/>}</td>
@@ -66,7 +72,8 @@ export const StockList=()=>{
                         <td>{stockData.data.h}</td>
                         <td>{stockData.data.l}</td>
                         <td>{stockData.data.o}</td>
-                        <td>{stockData.data.pc}</td>
+                        <td>{stockData.data.pc} <button className="btn btn-danger btn-sm ml-3 d-inline-block delete-button" onClick={(e)=> {e.stopPropagation() 
+                             deleteStock(stockData.symbol)}}>remove</button> </td>
                     </tr>
                 )
             })}
